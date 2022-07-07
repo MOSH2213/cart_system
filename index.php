@@ -15,28 +15,44 @@ if (isset($_GET['logout'])) {
    session_destroy();
    header('location:login.php');
 };
-
+//ad to cart kiyaan dee unoth  pahala condiion execute wei
 if (isset($_POST['add_to_cart'])) {
-
+   //line 121 ta adaala input tag eke value eka an $product_name ekata store karanawa
    $product_name = $_POST['product_name'];
+   //line 122 ta adaala input tag eke value eka an $product_price ekata store karanawa
    $product_price = $_POST['product_price'];
+   //line 120 ta adaala input tag eke value eka an $product_image ekata store karanawa
    $product_image = $_POST['product_image'];
+   //line 119 ta adaala input tag eke value eka an $product_quantuity ekata store karanawa
    $product_quantity = $_POST['product_quantity'];
 
-   $select_cart = mysqli_query($conn, "SELECT * FROM `cart` WHERE name = '$product_name' AND user_id = '$user_id'") or die('query failed');
+   $product_id=$_POST['product_id'];
 
+   //$select_cart kiyana variable ekata adala log wena user ge id eka ha adaala prouctname eka anuwa database eke query eka gahanawa(cart kiana table kata adaala weee)
+   $select_cart = mysqli_query($conn, "SELECT * FROM `cart` WHERE name = '$product_name' AND user_id = '$user_id'") or die('query failed');
+   //rows gaana check keermk wenaw methaana
    if (mysqli_num_rows($select_cart) > 0) {
+      //ehma output ekk enawa nm query eka execute karaddi ee kiyanne cart table eke data tika add wena widiyata keewa nm cart eke adaala product eka include weeee
       $message[] = 'product already added to cart!';
+      //ehma rows include nehe kiynn ecart eke hma product ekak adaala user ta nehe kiyan ekai ethkota else ru wee
    } else {
+      //mee query ekedi cart table ekata adaala user ta anuwa product eka table ekata insert weee
       mysqli_query($conn, "INSERT INTO `cart`(user_id, name, price, image, quantity) VALUES('$user_id', '$product_name', '$product_price', '$product_image', '$product_quantity')") or die('query failed');
+      //add unaama psse success message enawa
       $message[] = 'product added to cart!';
    }
 };
 
+//update car kiyana eka sidu unaanm conditio eka execute wei
 if (isset($_POST['update_cart'])) {
+   //$update_quantity ekata  175 line eke thiyena input tag eken ena cart table eke thiyena quantity value eka store kaanawa
    $update_quantity = $_POST['cart_quantity'];
+   //update_totquantity kiynana variable ekedi wenne databas eke siraawatama thiyena produt stock eken , cart ekata add krahama psse ena quantiy eka pennana eka
+   $update_totquantity = $_POST['product_quantity'] - ($_POST['cart_quantity']);
    $update_id = $_POST['cart_id'];
+   $updateproduct_id = $_POST['product_id'];
    mysqli_query($conn, "UPDATE `cart` SET quantity = '$update_quantity' WHERE id = '$update_id'") or die('query failed');
+   mysqli_query($conn, "UPDATE `products` SET quantity = '$update_totquantity' WHERE id= '$updateproduct_id'") or die('query failed');
    $message[] = 'cart quantity updated successfully!';
 }
 
@@ -68,7 +84,6 @@ if (isset($_GET['delete_all'])) {
 </head>
 
 <body>
-
    <?php
    if (isset($message)) {
       foreach ($message as $message) {
@@ -109,9 +124,10 @@ if (isset($_GET['delete_all'])) {
             if (mysqli_num_rows($select_product) > 0) {
                while ($fetch_product = mysqli_fetch_assoc($select_product)) {
             ?>
-                  <form method="post" class="box" action="">
-                     <img src="images/<?php echo $fetch_product['image']; ?>" alt="">
+                  <form method="POST" class="box" action="">
+                     <img src="<?php echo $fetch_product['image']; ?>" alt="">
                      <div class="name"><?php echo $fetch_product['name']; ?></div>
+                     <div class="name"><?php echo $fetch_product['id']; ?></div>
                      <div class="price">$<?php echo $fetch_product['price']; ?>/-</div>
                      <input type="number" min="1" name="product_quantity" value="1">
                      <input type="hidden" name="product_image" value="<?php echo $fetch_product['image']; ?>">
@@ -125,7 +141,7 @@ if (isset($_GET['delete_all'])) {
             ?>
 
          </div>
-         <?php //echo $product_image; ?>
+         <!-- <?php echo $update_quantity; ?> -->
       </div>
 
       <div class="shopping-cart">
@@ -139,6 +155,7 @@ if (isset($_GET['delete_all'])) {
                <th>price</th>
                <th>quantity</th>
                <th>total price</th>
+               <th>IN STOCK</th>
                <th>action</th>
             </thead>
             <tbody>
@@ -148,18 +165,26 @@ if (isset($_GET['delete_all'])) {
                if (mysqli_num_rows($cart_query) > 0) {
                   while ($fetch_cart = mysqli_fetch_assoc($cart_query)) {
                ?>
+
                      <tr>
-                        <td><img src="images/<?php echo $fetch_cart['image']; ?>" height="100" alt=""></td>
+                        <td><img src="<?php echo $fetch_cart['image']; ?>" height="100" alt=""></td>
                         <td><?php echo $fetch_cart['name']; ?></td>
                         <td>$<?php echo $fetch_cart['price']; ?>/-</td>
                         <td>
-                           <form action="" method="post">
+                           <form action="" method="POST">
                               <input type="hidden" name="cart_id" value="<?php echo $fetch_cart['id']; ?>">
-                              <input type="number" min="1" name="cart_quantity" value="<?php echo $fetch_cart['quantity']; ?>">
+                              <input type="hidden" name="product_id" value="<?php echo $pid=$fetch_cart['product_id']; ?>">
+                              <?php
+                                 $product_query = mysqli_query($conn, "SELECT * FROM `products` WHERE id='$pid'") or die('query failed');
+                                 $fetch_product = mysqli_fetch_assoc($product_query);
+                              ?>
+                              <input type="hidden" name="product_quantity" value="<?php echo $fetch_product['quantity']; ?>">
+                              <input type="number" min="0" max="<?php echo $fetch_product['quantity'] ?>" name="cart_quantity" value="<?php echo $fetch_cart['quantity']; ?>">
                               <input type="submit" name="update_cart" value="update" class="option-btn">
                            </form>
                         </td>
                         <td>$<?php echo $sub_total = ($fetch_cart['price'] * $fetch_cart['quantity']); ?>/-</td>
+                        <td><?php echo $protot = ($fetch_product['quantity']); ?>/-</td>
                         <td><a href="index.php?remove=<?php echo $fetch_cart['id']; ?>" class="delete-btn" onclick="return confirm('remove item from cart?');">remove</a></td>
                      </tr>
                <?php
