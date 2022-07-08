@@ -83,7 +83,9 @@ require 'index.php';
             <div class="cart-btn">
                 <a href="#" class="btn <?php echo ($grand_total > 1) ? '' : 'disabled'; ?>">proceed to checkout</a>
             </div>
-
+            <div class="cart-btn">
+                <a href="index.php" class="btn">HOME</a>
+            </div>
         </div>
     </div>
 </body>
