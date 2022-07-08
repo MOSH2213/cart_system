@@ -40,6 +40,7 @@ require 'index.php';
                     <?php
                     $cart_query = mysqli_query($conn, "SELECT * FROM `cart` WHERE user_id = '$user_id'") or die('query failed');
                     $grand_total = 0;
+                    $tot_prod=0;
                     if (mysqli_num_rows($cart_query) > 0) {
                         while ($fetch_cart = mysqli_fetch_assoc($cart_query)) {
                     ?>
@@ -67,14 +68,20 @@ require 'index.php';
                             </tr>
                     <?php
                             $grand_total += $sub_total;
+                            //mee pahala thiyena array variable ekata add wena product id set eka store karanwa
+                            $procount=array($fetch_product['id']);
+                            //passe ee adala array eke indexes tika count karala gnnawa
+                            $tot_prod += count($procount);
                         }
-                    } else {
+                    }
+                     else {
                         echo '<tr><td style="padding:20px; text-transform:capitalize;" colspan="6">no item added</td></tr>';
                     }
                     ?>
                     <tr class="table-bottom">
                         <td colspan="4">grand total :</td>
                         <td>$<?php echo $grand_total; ?>/-</td>
+                        <td>peices <?php echo $tot_prod; ?>/-</td>
                         <td><a href="index.php?delete_all" onclick="return confirm('delete all from cart?');" class="delete-btn <?php echo ($grand_total > 1) ? '' : 'disabled'; ?>">delete all</a></td>
                     </tr>
                 </tbody>
@@ -84,8 +91,8 @@ require 'index.php';
                 <a href="#" class="btn <?php echo ($grand_total > 1) ? '' : 'disabled'; ?>">proceed to checkout</a>
             </div>
             <div class="cart-btn">
-                <a href="index.php" class="btn">HOME</a>
-            </div>
+                <a href="index.php" class="btn">Home</a>
+            </div
         </div>
     </div>
 </body>
